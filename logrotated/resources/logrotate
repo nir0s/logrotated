@@ -1,0 +1,24 @@
+{% for path in paths %}{{ path }} {% endfor %}{ {% if frequency %}
+    {{ frequency }}{% endif %}{% if compress %}
+    compress{% endif %}{% if copy %}
+    copy{% endif %}{% if delay_compression %}
+    delaycompress{% endif %}{% if copytruncate %}
+    copytruncate{% endif %}{% if keep %}
+    rotate {{ keep }}{% endif %}{% if ignore_missing %}
+    missingok{% endif %}{% if shared_postscript %}
+    sharedscripts{% endif %}{% if dont_rotate_empty %}
+    notifempty{% endif %}{% if create %}
+    create {% for arg in create %}{{ arg }} {% endfor %}{% endif %}{% if extension %}
+    extension {{ extension }}{% endif %}{% if post_rotate %}
+    postrotate
+        {%- for line in post_rotate %}
+        {{ line }}
+        {%- endfor %}
+    endscript{% endif %}{% if pre_rotate %}
+    prerotate
+        {%- for line in pre_rotate %}
+        {{ line }}
+        {%- endfor %}
+    endscript{% endif %}
+    #notifempty
+}
