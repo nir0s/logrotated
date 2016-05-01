@@ -5,7 +5,9 @@ logrotated
 [![PyPI](http://img.shields.io/pypi/dm/logrotated.svg)](http://img.shields.io/pypi/dm/logrotated.svg)
 [![PypI](http://img.shields.io/pypi/v/logrotated.svg)](http://img.shields.io/pypi/v/logrotated.svg)
 
-`logrotated` is a CLI and Pythonic API for `logrotate` and `LogRotateWin` (SOON!). It allows to easily configure logrotation for files and directories without (for now, kinda, but it will get easier) having to know the ins and outs of `logrotate`.
+Why does your volume keep exploding? It's not ISIS! It's your logs!
+
+`logrotated` is a CLI and Pythonic API for `logrotate` and `LogRotateWin` (SOON!). It aims to make logrotation easier without  having to know the ins and outs of `logrotate`.
 
 ## Features
 
