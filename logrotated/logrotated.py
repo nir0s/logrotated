@@ -1,4 +1,5 @@
 """
+CLI and Pythonic API for generating and deploying logrotate configuration.
 http://www.linuxcommand.org/man_pages/logrotate8.html
 """
 
@@ -21,28 +22,36 @@ LOGROTATED_PATH = '/etc/logrotate.d'
 lgr = logger.init()
 
 
-def rotate(paths, name, deploy=False, verbose=False, **params):
+def rotate(paths, name, deploy=False, generic=False, verbose=False, **params):
     lgr.setLevel(logging.DEBUG if verbose else logging.INFO)
 
+    if generic:
+        params = _generate_generic_config(params)
     if deploy and not find_executable('logrotate'):
         lgr.error('logrotate was not found on this system. aborting deploy.')
         sys.exit(1)
     params.update(dict(paths=paths, name=name))
     logrotate_config_path = _generate_tmp_file_path(name)
+    lgr.info('Generating logrotate config...')
     _generate_from_template(logrotate_config_path, **params)
+
     if deploy:
-        try:
-            _deploy_logrotate_config(
-                logrotate_config_path,
-                os.path.join(LOGROTATED_PATH, name))
-        except IOError as ex:
-            if 'Permission denied:' in str(ex):
-                lgr.error(
-                    'Cannot write configuration file to {0}. Note '
-                    'that to deploy, you must run logrotated as sudo.'.format(
-                        LOGROTATED_PATH))
-            else:
-                raise IOError(ex)
+        logrotate_destination_path = os.path.join(LOGROTATED_PATH, name)
+        _deploy_logrotate_config(
+            logrotate_config_path,
+            logrotate_destination_path)
+
+
+def _generate_generic_config(params):
+    generic_params = dict(
+        keep='10',
+        size='100M',
+        ignore_missing=True,
+        compress=True,
+        dont_rotate_empty=True
+    )
+    params.update(generic_params)
+    return params
 
 
 def _generate_from_template(destination, **params):
@@ -67,7 +76,18 @@ def _generate_tmp_file_path(name):
 
 def _deploy_logrotate_config(source, destination):
     lgr.info('Deploying {0} to {1}...'.format(source, destination))
-    shutil.move(source, destination)
+    try:
+        shutil.move(source, destination)
+    except IOError as ex:
+        if 'Permission denied:' in str(ex):
+            lgr.error(
+                'Cannot write configuration file to {0}. Note '
+                'that to deploy, you must run logrotated as sudo.'.format(
+                    LOGROTATED_PATH))
+        else:
+            raise IOError(ex)
+    if os.path.isfile(destination):
+        lgr.info('Deployment successful!')
 
 
 @click.command()
@@ -76,15 +96,18 @@ def _deploy_logrotate_config(source, destination):
               help='The name of the logrotation script.')
 @click.option('-d', '--deploy', is_flag=True, default=False,
               help='Deploy the configuration on the current machine.')
+@click.option('-g', '--generic', default=False, is_flag=True,
+              help='Provides generic configuration for rookies.')
 @click.option('-f', '--frequency',
-              type=click.Choice(['daily', 'weekly', 'monthly', 'yearly']),
+              type=click.Choice(
+                  ['hourly', 'daily', 'weekly', 'monthly', 'yearly']),
               help='How often to rotate the files.')
 @click.option('-s', '--size',
               help='Size of file at which rotation will take place. '
               '(e.g. 100k, 100M, 100G)')
 @click.option('-k', '--keep',
               help='How many files to keep when rotating.')
-@click.option('-c', '--compress', default=True, is_flag=True,
+@click.option('-c', '--compress', default=False, is_flag=True,
               help='Whether to compress rotated log files or not.')
 @click.option('--create', nargs=3,
               help='Created new log files using `mod user password`.')
@@ -96,7 +119,7 @@ def _deploy_logrotate_config(source, destination):
               'logrotate config.')
 @click.option('--dont-rotate-empty', default=False, is_flag=True,
               help='Do not rotate empty files.')
-@click.option('-m', '--ignore-missing', default=True, is_flag=True,
+@click.option('-m', '--ignore-missing', default=False, is_flag=True,
               help="If there are no logs, don't fail.. just continue.")
 @click.option('--shared-postscript', default=False, is_flag=True,
               help='Run postrotate script only after all logs in path have '
@@ -107,9 +130,9 @@ def _deploy_logrotate_config(source, destination):
 @click.option('--overwrite', default=False, is_flag=True,
               help='Whether to overwrite a logrotate config or not.')
 @click.option('-v', '--verbose', default=False, is_flag=True)
-def main(path, name, deploy, verbose, **params):
+def main(path, name, deploy, generic, verbose, **params):
     """Generates a logrotate configuration and deploys it if necessary.
     """
     logger.configure()
     params['post_rotate'] = list(params['post_rotate'])
-    rotate(list(path), name, deploy, verbose, **params)
+    rotate(list(path), name, deploy, generic, verbose, **params)

@@ -1,6 +1,7 @@
 {% for path in paths %}{{ path }} {% endfor %}{ {% if frequency %}
     {{ frequency }}{% endif %}{% if compress %}
-    compress{% endif %}{% if copy %}
+    compress{% endif %}{% if size %}
+    size {{ size }}{% endif %}{% if copy %}
     copy{% endif %}{% if delay_compression %}
     delaycompress{% endif %}{% if copytruncate %}
     copytruncate{% endif %}{% if keep %}
@@ -20,5 +21,4 @@
         {{ line }}
         {%- endfor %}
     endscript{% endif %}
-    #notifempty
 }

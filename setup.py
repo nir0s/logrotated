@@ -17,7 +17,7 @@ install_requires = [
 
 setup(
     name='logrotated',
-    version="0.0.1",
+    version="0.0.3",
     url='https://github.com/nir0s/logrotated',
     author='nir0s',
     author_email='nir36g@gmail.com',
