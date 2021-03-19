@@ -12,7 +12,7 @@ def read(*parts):
 
 install_requires = [
     "click==6.6",
-    "jinja2==2.8"
+    "jinja2==2.11.3"
 ]
 
 setup(
